@@ -29,10 +29,8 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Analyze each competitor
-        const analyses: CompetitorAnalysis[] = [];
-
-        for (const competitorUrl of competitors) {
+        // Analyze each competitor in parallel
+        const analyses = await Promise.all(competitors.map(async (competitorUrl) => {
             try {
                 // Scrape competitor website
                 const scraped = await scrapeWebsite(competitorUrl);
@@ -97,14 +95,17 @@ Be thorough and extract all pricing plans completely. Do not include any explana
                     console.error(`Error fetching PageSpeed for ${competitorUrl}:`, psError);
                 }
 
-                analyses.push(analysis);
+                return analysis;
             } catch (error) {
                 console.error(`Error analyzing ${competitorUrl}:`, error);
-                // Continue with other competitors even if one fails
+                return null;
             }
-        }
+        }));
 
-        if (analyses.length === 0) {
+        // Filter out any failed analyses
+        const successfulAnalyses = analyses.filter((a): a is CompetitorAnalysis => a !== null);
+
+        if (successfulAnalyses.length === 0) {
             return NextResponse.json<ApiResponse<never>>(
                 { success: false, error: 'Failed to analyze any competitors' },
                 { status: 500 }
@@ -113,7 +114,7 @@ Be thorough and extract all pricing plans completely. Do not include any explana
 
         return NextResponse.json<ApiResponse<CompetitorAnalysis[]>>({
             success: true,
-            data: analyses,
+            data: successfulAnalyses,
         });
     } catch (error) {
         console.error('Error analyzing competitors:', error);
