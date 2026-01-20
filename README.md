@@ -1,36 +1,191 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Competitive Intelligence Dashboard
 
-## Getting Started
+A Next.js-based competitive intelligence platform that uses AI to automatically discover competitors and generate comprehensive comparison dashboards.
 
-First, run the development server:
+## 🚀 Features
 
+- **AI-Powered Analysis**: Uses OpenAI GPT-4 Turbo to analyze websites and discover competitors
+- **Automatic Competitor Discovery**: Suggests 3 relevant competitors based on your industry and business model
+- **Comprehensive Dashboard**: Multi-tab interface showing pricing, products, messaging, and strategic insights
+- **Demo Mode**: Works without API key using sample data for testing
+- **Modern UI**: Built with Next.js 14, TypeScript, Tailwind CSS, and Shadcn/ui
+
+## 📋 Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+- OpenAI API key (optional for demo mode)
+
+## 🛠️ Installation
+
+1. Clone or navigate to the project directory:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd /Users/jamr/.gemini/antigravity/scratch/competitive-intel-dashboard
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Configure environment variables:
+```bash
+# Copy .env.local and add your OpenAI API key
+OPENAI_API_KEY=your_api_key_here
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🏃 Running the Application
 
-## Learn More
+### Development Mode
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-To learn more about Next.js, take a look at the following resources:
+### Production Build
+```bash
+npm run build
+npm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📖 Usage
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 1. Analyze Your Website
+- Enter your website URL on the landing page
+- Click "Analyze" to detect your industry and business model
+- Review the analysis results
 
-## Deploy on Vercel
+### 2. Select Competitors
+- View 3 AI-suggested competitors
+- Add manual competitors if needed
+- Select which competitors to analyze
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3. View Dashboard
+- **Overview**: Key metrics and competitor summaries
+- **Pricing**: Side-by-side pricing comparison
+- **Products**: Product catalogs and comparisons
+- **Messaging**: Value propositions and positioning
+- **Insights**: AI-generated strategic recommendations
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🎨 Tech Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Components**: Shadcn/ui
+- **AI**: OpenAI API (GPT-4 Turbo)
+- **Validation**: Zod
+- **Icons**: Lucide React
+
+## 📁 Project Structure
+
+```
+competitive-intel-dashboard/
+├── app/
+│   ├── api/              # API routes
+│   ├── competitors/      # Competitor selection page
+│   ├── dashboard/        # Dashboard page
+│   ├── layout.tsx        # Root layout
+│   └── page.tsx          # Landing page
+├── components/
+│   ├── ui/               # Shadcn/ui components
+│   ├── CompetitorCard.tsx
+│   ├── PricingTable.tsx
+│   └── InsightsPanel.tsx
+├── lib/
+│   ├── openai.ts         # OpenAI client
+│   ├── types.ts          # TypeScript types
+│   ├── utils.ts          # Utilities
+│   └── sample-data.ts    # Demo data
+└── .env.local            # Environment variables
+```
+
+## 🔑 Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `OPENAI_API_KEY` | Your OpenAI API key | No (demo mode available) |
+
+## 🚢 Deployment
+
+### Vercel (Recommended)
+
+1. Push your code to GitHub
+2. Import project in Vercel
+3. Add `OPENAI_API_KEY` environment variable
+4. Deploy
+
+```bash
+# Or use Vercel CLI
+vercel deploy
+```
+
+## 🧪 Demo Mode
+
+The application includes a demo mode that works without an API key:
+- Uses pre-configured sample data
+- Demonstrates all features
+- Perfect for testing and development
+
+## 📝 API Routes
+
+### POST `/api/analyze-site`
+Analyzes a website to determine industry, business model, products, and target market.
+
+**Request:**
+```json
+{
+  "url": "https://example.com"
+}
+```
+
+### POST `/api/suggest-competitors`
+Suggests 3 competitors based on the analyzed website.
+
+**Request:**
+```json
+{
+  "userSite": "https://example.com",
+  "industry": "SaaS",
+  "businessModel": "B2B"
+}
+```
+
+### POST `/api/analyze-competitors`
+Performs deep analysis of competitor websites.
+
+**Request:**
+```json
+{
+  "competitors": [
+    "https://competitor1.com",
+    "https://competitor2.com"
+  ]
+}
+```
+
+## 🎯 Future Enhancements
+
+- [ ] Rate limiting for API calls
+- [ ] Export functionality (PDF/CSV)
+- [ ] User authentication
+- [ ] Analysis history storage
+- [ ] Enhanced mobile responsiveness
+- [ ] Keyboard navigation
+- [ ] Real-time collaboration
+
+## 📄 License
+
+MIT
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📧 Support
+
+For issues or questions, please open an issue on GitHub.
+
+---
+
+Built with ❤️ using Next.js and OpenAI
