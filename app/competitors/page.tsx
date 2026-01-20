@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CompetitorCard } from '@/components/CompetitorCard';
+import { AnalysisProgress } from '@/components/AnalysisProgress';
 import { Loader2, Plus, ArrowLeft } from 'lucide-react';
 import { Competitor } from '@/lib/types';
 
@@ -136,7 +137,11 @@ export default function CompetitorsPage() {
                     </p>
                 </div>
 
-                {loading ? (
+                {analyzing ? (
+                    <div className="py-12">
+                        <AnalysisProgress />
+                    </div>
+                ) : loading ? (
                     <div className="text-center py-24">
                         <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-400 mb-4" />
                         <p className="text-sm text-gray-600">Finding your competitors...</p>
