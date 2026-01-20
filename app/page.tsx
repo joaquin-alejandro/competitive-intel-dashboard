@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { MinimalistWebsiteInput } from '@/components/MinimalistWebsiteInput';
 import { Loader2, TrendingUp } from 'lucide-react';
 import { SiteAnalysis } from '@/lib/types';
 
@@ -75,13 +75,17 @@ export default function Home() {
                 Enter Your Website
               </label>
               <div className="flex gap-2">
-                <Input
-                  type="url"
+                <MinimalistWebsiteInput
                   placeholder="https://yourwebsite.com"
                   value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && !loading && handleAnalyze()}
-                  className="flex-1 h-10 border-gray-300 focus:border-black focus:ring-black"
+                  onChange={(val) => setUrl(val)}
+                  onSubmit={(val) => {
+                    setUrl(val);
+                    // Defer analysis slightly to ensure state update
+                    setTimeout(() => handleAnalyze(val), 0);
+                  }}
+                  isLoading={loading}
+                  className="flex-1"
                 />
                 <Button
                   onClick={() => handleAnalyze()}

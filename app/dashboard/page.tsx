@@ -27,7 +27,7 @@ import {
 import { CompetitorAnalysis, ApiResponse, SiteAnalysis } from '@/lib/types';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
-import { WebsiteInput } from '@/components/WebsiteInput';
+import { MinimalistWebsiteInput } from '@/components/MinimalistWebsiteInput';
 import { PerformanceCard } from '@/components/PerformanceCard';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
@@ -447,43 +447,48 @@ export default function DashboardPage() {
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Website URL</label>
-                            <Input
-                                type="url"
-                                required
-                                placeholder="https://competitor.com"
-                                value={newCompetitorUrl}
-                                onChange={(e) => setNewCompetitorUrl(e.target.value)}
-                                className="border-gray-200 focus:ring-black"
-                                autoFocus
-                            />
-                            <p className="text-[10px] text-gray-400">
-                                Our AI will analyze the competitor's pricing, messaging, and products.
-                            </p>
-                        </div>
-                        <div className="flex justify-end gap-3 pt-4">
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={() => setIsAddModalOpen(false)}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={isAdding}
-                                className="bg-black hover:bg-gray-800 text-white min-w-[100px]"
-                            >
-                                {isAdding ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Analyzing...
-                                    </>
-                                ) : (
-                                    'Start Analysis'
-                                )}
-                            </Button>
+                        <div className="space-y-4 px-6 pt-0 pb-6">
+                            <div className="space-y-4">
+                                <label className="text-xs font-bold text-gray-500 uppercase">Website URL</label>
+                                <MinimalistWebsiteInput
+                                    value={newCompetitorUrl}
+                                    onChange={(val) => setNewCompetitorUrl(val)}
+                                    onSubmit={(url) => {
+                                        setNewCompetitorUrl(url);
+                                        handleAddCompetitor(undefined, url);
+                                    }}
+                                    isLoading={isAdding}
+                                    className="w-full"
+                                    autoFocus
+                                    placeholder="https://competitor.com"
+                                />
+                                <p className="text-[10px] text-gray-400">
+                                    Our AI will analyze the competitor's pricing, messaging, and products.
+                                </p>
+                            </div>
+                            <div className="flex justify-end gap-3 pt-4">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={() => setIsAddModalOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={isAdding}
+                                    className="bg-black hover:bg-gray-800 text-white min-w-[100px]"
+                                >
+                                    {isAdding ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Analyzing...
+                                        </>
+                                    ) : (
+                                        'Start Analysis'
+                                    )}
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
