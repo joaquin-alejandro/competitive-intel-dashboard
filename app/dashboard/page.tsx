@@ -447,29 +447,43 @@ export default function DashboardPage() {
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
-                        <div className="p-6 space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase">Website URL</label>
-                                <WebsiteInput
-                                    onSubmit={(url) => {
-                                        setNewCompetitorUrl(url);
-                                        handleAddCompetitor(undefined, url);
-                                    }}
-                                    isLoading={isAdding}
-                                    className="w-full"
-                                />
-                                <p className="text-[10px] text-gray-400">
-                                    Our AI will analyze the competitor's pricing, messaging, and products.
-                                </p>
-                            </div>
-                            <div className="flex justify-end gap-3 pt-2">
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => setIsAddModalOpen(false)}
-                                >
-                                    Cancel
-                                </Button>
-                            </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Website URL</label>
+                            <Input
+                                type="url"
+                                required
+                                placeholder="https://competitor.com"
+                                value={newCompetitorUrl}
+                                onChange={(e) => setNewCompetitorUrl(e.target.value)}
+                                className="border-gray-200 focus:ring-black"
+                                autoFocus
+                            />
+                            <p className="text-[10px] text-gray-400">
+                                Our AI will analyze the competitor's pricing, messaging, and products.
+                            </p>
+                        </div>
+                        <div className="flex justify-end gap-3 pt-4">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => setIsAddModalOpen(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={isAdding}
+                                className="bg-black hover:bg-gray-800 text-white min-w-[100px]"
+                            >
+                                {isAdding ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Analyzing...
+                                    </>
+                                ) : (
+                                    'Start Analysis'
+                                )}
+                            </Button>
                         </div>
                     </div>
                 </div>
