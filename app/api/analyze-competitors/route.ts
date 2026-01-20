@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { callOpenAI, parseAIJSON } from '@/lib/openai';
 import { AnalyzeCompetitorsSchema, CompetitorAnalysis, ApiResponse } from '@/lib/types';
 import { sampleData } from '@/lib/sample-data';
+import { getPageSpeedInsights } from '@/lib/pagespeed';
+import { scrapeWebsite } from '@/lib/scraper';
 
 export async function POST(request: NextRequest) {
     try {
@@ -32,21 +34,25 @@ export async function POST(request: NextRequest) {
 
         for (const competitorUrl of competitors) {
             try {
+                // Scrape competitor website
+                const scraped = await scrapeWebsite(competitorUrl);
+                const pageContent = scraped
+                    ? `Title: ${scraped.title}\nDescription: ${scraped.description}\nHeadings: ${scraped.h1s.join(', ')}\n\nContent: ${scraped.text}`
+                    : "Could not fetch website content directly. Rely on web search.";
+
                 const prompt = `Analyze this competitor website: ${competitorUrl}
 
-Search the web to retrieve information about:
-1. Homepage
-2. Pricing or plans page
-3. About page
-4. Products or features page
+Direct Page Content:
+"""
+${pageContent}
+"""
 
-Extract and analyze:
-- All pricing tiers (name, price, billing frequency, key features list)
-- All products/services offered
-- Main headline and value proposition from homepage
-- Target audience description
-- Key differentiators that make them unique
-- Overall positioning strategy
+Instructions:
+1. Ignore the brand name if it contradicts the actual content.
+2. Extract all pricing tiers (name, price, billing frequency, key features list).
+3. Identify all products/services offered.
+4. Extract the main headline and value proposition.
+5. Identify the target audience and key differentiators.
 
 Return ONLY valid JSON with this exact structure:
 {
@@ -80,6 +86,17 @@ Be thorough and extract all pricing plans completely. Do not include any explana
 
                 const response = await callOpenAI(prompt, true);
                 const analysis = parseAIJSON<CompetitorAnalysis>(response.content);
+
+                // Add PageSpeed Insights
+                try {
+                    const pageSpeed = await getPageSpeedInsights(competitorUrl);
+                    if (pageSpeed) {
+                        analysis.pageSpeed = pageSpeed;
+                    }
+                } catch (psError) {
+                    console.error(`Error fetching PageSpeed for ${competitorUrl}:`, psError);
+                }
+
                 analyses.push(analysis);
             } catch (error) {
                 console.error(`Error analyzing ${competitorUrl}:`, error);

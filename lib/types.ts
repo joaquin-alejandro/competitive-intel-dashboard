@@ -16,11 +16,28 @@ export const AnalyzeCompetitorsSchema = z.object({
 });
 
 // TypeScript Types
+export interface PerformanceMetrics {
+  score: number;
+  lcp: string;
+  cls: string;
+  tbt: string;
+  speedIndex: string;
+}
+
+export interface PageSpeedData {
+  performance: number;
+  accessibility: number;
+  bestPractices: number;
+  seo: number;
+  metrics: PerformanceMetrics;
+}
 export interface SiteAnalysis {
+  url: string;
   industry: string;
   businessModel: string;
   products: string[];
   targetMarket: string;
+  pageSpeed?: PageSpeedData;
 }
 
 export interface Competitor {
@@ -60,6 +77,7 @@ export interface CompetitorAnalysis {
   products: string[];
   messaging: Messaging;
   insights: Insights;
+  pageSpeed?: PageSpeedData;
 }
 
 export interface ApiResponse<T> {

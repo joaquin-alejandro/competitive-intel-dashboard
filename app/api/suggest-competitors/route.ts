@@ -28,31 +28,39 @@ export async function POST(request: NextRequest) {
         }
 
         // Call OpenAI API to find competitors
-        const prompt = `Find the top 3 main competitors for this website: ${userSite}
+        const prompt = `Find the top 3 most relevant DIRECT competitors for: ${userSite}
 
 Context:
-- Industry: ${industry}
+- Industry/Niche: ${industry}
 - Business Model: ${businessModel}
 
-Search the web to find the most relevant direct competitors. For each competitor, provide:
+Search the web for direct competitors that provide a similar SOLUTION or PRODUCT to the same TARGET MARKET.
+
+CRITICAL RULES:
+1. EXCLUDE General Tech Giants: Do NOT suggest Google, OpenAI, Microsoft, AWS, or Apple unless their specific competing product is the primary focus of the comparison (e.g., Google Analytics is a competitor for an analytics tool, but Google is not).
+2. PRIORITIZE Mid-market and Niche Players: If the user site is a specialized tool, find other specialized tools in that niche (e.g. for MarTech, look at companies like Supermetrics, Funnel.io, Adverity, etc.).
+3. DIRECT COMPETITION: Focus on who the user would lose a deal to.
+
+For each competitor, provide:
 1. Company name
 2. Website URL
-3. A brief reason why they are a competitor (1-2 sentences)
-4. Similarity score (0-100, where 100 is most similar)
+3. Website URL
+4. A brief reason why they are a direct competitor (mentioning shared features/market)
+5. Similarity score (0-100, relative to product/market fit)
 
-Return ONLY valid JSON with this exact structure:
+Return ONLY valid JSON:
 {
   "competitors": [
     {
       "name": "Company Name",
       "url": "https://example.com",
-      "reason": "Brief explanation of why they are a competitor",
+      "reason": "Specific explanation of product/market overlap",
       "similarity": 85
     }
   ]
 }
 
-Focus on direct competitors with similar products/services and target markets. Do not include any explanatory text outside the JSON.`;
+No explanatory text outside the JSON.`;
 
         const response = await callOpenAI(prompt, true);
         const parsed = parseAIJSON<{ competitors: Array<Omit<Competitor, 'logo'>> }>(response.content);

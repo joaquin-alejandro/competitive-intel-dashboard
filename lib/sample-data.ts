@@ -155,6 +155,7 @@ export const sampleData: CompetitorAnalysis[] = [
 ];
 
 export const sampleSiteAnalysis = {
+    url: 'https://example.com',
     industry: 'Business Analytics & Intelligence',
     businessModel: 'SaaS (Software as a Service)',
     products: ['Analytics Platform', 'Data Visualization', 'Reporting Tools'],

@@ -19,24 +19,74 @@ import {
     Home,
     Search,
     Settings,
-    HelpCircle
+    HelpCircle,
+    Plus,
+    X,
+    Loader2
 } from 'lucide-react';
-import { CompetitorAnalysis } from '@/lib/types';
+import { CompetitorAnalysis, ApiResponse, SiteAnalysis } from '@/lib/types';
 import Image from 'next/image';
+import { Input } from '@/components/ui/input';
+import { PerformanceCard } from '@/components/PerformanceCard';
+import { toast } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
 
 export default function DashboardPage() {
     const router = useRouter();
     const [analyses, setAnalyses] = useState<CompetitorAnalysis[]>([]);
+    const [siteAnalysis, setSiteAnalysis] = useState<SiteAnalysis | null>(null);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [newCompetitorUrl, setNewCompetitorUrl] = useState('');
+    const [isAdding, setIsAdding] = useState(false);
 
     useEffect(() => {
         const stored = localStorage.getItem('competitorAnalysis');
+        const storedSite = localStorage.getItem('siteAnalysis');
+
         if (!stored) {
             router.push('/');
             return;
         }
 
         setAnalyses(JSON.parse(stored));
-    }, []);
+        if (storedSite) {
+            setSiteAnalysis(JSON.parse(storedSite));
+        }
+    }, [router]);
+
+    const handleAddCompetitor = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newCompetitorUrl) return;
+
+        setIsAdding(true);
+        try {
+            const response = await fetch('/api/analyze-competitors', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    competitors: [newCompetitorUrl],
+                }),
+            });
+
+            const result: ApiResponse<CompetitorAnalysis[]> = await response.json();
+            if (result.success && result.data) {
+                const newAnalysis = result.data[0];
+                const updatedAnalyses = [...analyses, newAnalysis];
+                setAnalyses(updatedAnalyses);
+                localStorage.setItem('competitorAnalysis', JSON.stringify(updatedAnalyses));
+                setIsAddModalOpen(false);
+                setNewCompetitorUrl('');
+                toast.success(`Analysis for ${newAnalysis.competitor} completed!`);
+            } else {
+                toast.error(result.error || 'Failed to analyze competitor');
+            }
+        } catch (error) {
+            console.error('Error adding competitor:', error);
+            toast.error('Something went wrong. Please try again.');
+        } finally {
+            setIsAdding(false);
+        }
+    };
 
     if (analyses.length === 0) return null;
 
@@ -117,12 +167,11 @@ export default function DashboardPage() {
                                 Export
                             </Button>
                             <Button
-                                variant="outline"
-                                onClick={() => router.push('/competitors')}
-                                className="h-8 px-3 text-sm border-gray-300"
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="h-8 px-3 text-sm bg-black hover:bg-gray-800 text-white"
                             >
-                                <RefreshCw className="mr-2 h-4 w-4" />
-                                Refresh
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Competitor
                             </Button>
                         </div>
                     </div>
@@ -147,6 +196,9 @@ export default function DashboardPage() {
                                 </TabsTrigger>
                                 <TabsTrigger value="insights" className="text-sm">
                                     Insights
+                                </TabsTrigger>
+                                <TabsTrigger value="performance" className="text-sm">
+                                    Performance
                                 </TabsTrigger>
                             </TabsList>
 
@@ -201,15 +253,22 @@ export default function DashboardPage() {
                                                     <div className="text-xs font-medium text-gray-500 mb-1">Primary Focus</div>
                                                     <div className="text-sm">{analysis.insights.positioning}</div>
                                                 </div>
-                                                <div>
-                                                    <div className="text-xs font-medium text-gray-500 mb-2">Key Strengths</div>
+                                                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
                                                     <div className="flex flex-wrap gap-1.5">
-                                                        {analysis.insights.strengths.slice(0, 3).map((strength, idx) => (
+                                                        {analysis.insights.strengths.slice(0, 2).map((strength, idx) => (
                                                             <Badge key={idx} variant="secondary" className="text-xs font-normal">
                                                                 {strength}
                                                             </Badge>
                                                         ))}
                                                     </div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => router.push(`/competitors/${encodeURIComponent(analysis.url)}`)}
+                                                        className="text-xs h-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                    >
+                                                        View Details
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </div>
@@ -325,10 +384,106 @@ export default function DashboardPage() {
                             <TabsContent value="insights">
                                 <InsightsPanel insights={insightsData} />
                             </TabsContent>
+
+                            {/* Performance Tab */}
+                            <TabsContent value="performance" className="space-y-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    {/* Owner Site Performance */}
+                                    {siteAnalysis?.pageSpeed && (
+                                        <div className="space-y-4">
+                                            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                                Your Website Performance
+                                            </h2>
+                                            <PerformanceCard data={siteAnalysis.pageSpeed} title={new URL(siteAnalysis.url || '').hostname} />
+                                        </div>
+                                    )}
+
+                                    {/* Top Competitor Performance */}
+                                    <div className="space-y-4">
+                                        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                            <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                                            Competitor Performance
+                                        </h2>
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {analyses.filter(a => a.pageSpeed).map((analysis) => (
+                                                <PerformanceCard
+                                                    key={analysis.url}
+                                                    data={analysis.pageSpeed!}
+                                                    title={analysis.competitor}
+                                                />
+                                            ))}
+                                            {analyses.every(a => !a.pageSpeed) && (
+                                                <div className="p-12 text-center border border-dashed border-gray-200 rounded-xl">
+                                                    <p className="text-sm text-gray-500">No performance data available for competitors.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </TabsContent>
                         </Tabs>
                     </div>
                 </div>
             </div>
+
+            {/* Add Competitor Modal */}
+            {isAddModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md border border-gray-100 overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                            <h3 className="font-bold text-gray-900">Add New Competitor</h3>
+                            <button
+                                onClick={() => setIsAddModalOpen(false)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleAddCompetitor} className="p-6 space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-500 uppercase">Website URL</label>
+                                <Input
+                                    type="url"
+                                    required
+                                    placeholder="https://competitor.com"
+                                    value={newCompetitorUrl}
+                                    onChange={(e) => setNewCompetitorUrl(e.target.value)}
+                                    className="border-gray-200 focus:ring-black"
+                                    autoFocus
+                                />
+                                <p className="text-[10px] text-gray-400">
+                                    Our AI will analyze the competitor's pricing, messaging, and products.
+                                </p>
+                            </div>
+                            <div className="flex justify-end gap-3 pt-4">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={() => setIsAddModalOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={isAdding}
+                                    className="bg-black hover:bg-gray-800 text-white min-w-[100px]"
+                                >
+                                    {isAdding ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Analyzing...
+                                        </>
+                                    ) : (
+                                        'Start Analysis'
+                                    )}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+            <Toaster position="bottom-right" />
         </div>
     );
 }
