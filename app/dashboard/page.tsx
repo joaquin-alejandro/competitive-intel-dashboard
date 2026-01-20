@@ -27,6 +27,7 @@ import {
 import { CompetitorAnalysis, ApiResponse, SiteAnalysis } from '@/lib/types';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
+import { WebsiteInput } from '@/components/WebsiteInput';
 import { PerformanceCard } from '@/components/PerformanceCard';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
@@ -54,9 +55,11 @@ export default function DashboardPage() {
         }
     }, [router]);
 
-    const handleAddCompetitor = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newCompetitorUrl) return;
+    const handleAddCompetitor = async (e?: React.FormEvent, urlOverride?: string) => {
+        if (e) e.preventDefault();
+        const urlToUse = urlOverride || newCompetitorUrl;
+
+        if (!urlToUse) return;
 
         setIsAdding(true);
         try {
@@ -64,7 +67,7 @@ export default function DashboardPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    competitors: [newCompetitorUrl],
+                    competitors: [urlToUse],
                 }),
             });
 
@@ -123,7 +126,11 @@ export default function DashboardPage() {
                     <BarChart3 className="w-4 h-4 text-white" />
                 </div>
                 <div className="flex-1 flex flex-col gap-4">
-                    <button className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-600">
+                    <button
+                        onClick={() => router.push('/my-site')}
+                        className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-600 tooltip"
+                        title="My Website Analysis"
+                    >
                         <Home className="w-5 h-5" />
                     </button>
                     <button className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-600">
@@ -440,46 +447,30 @@ export default function DashboardPage() {
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
-                        <form onSubmit={handleAddCompetitor} className="p-6 space-y-4">
+                        <div className="p-6 space-y-6">
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-gray-500 uppercase">Website URL</label>
-                                <Input
-                                    type="url"
-                                    required
-                                    placeholder="https://competitor.com"
-                                    value={newCompetitorUrl}
-                                    onChange={(e) => setNewCompetitorUrl(e.target.value)}
-                                    className="border-gray-200 focus:ring-black"
-                                    autoFocus
+                                <WebsiteInput
+                                    onSubmit={(url) => {
+                                        setNewCompetitorUrl(url);
+                                        handleAddCompetitor(undefined, url);
+                                    }}
+                                    isLoading={isAdding}
+                                    className="w-full"
                                 />
                                 <p className="text-[10px] text-gray-400">
                                     Our AI will analyze the competitor's pricing, messaging, and products.
                                 </p>
                             </div>
-                            <div className="flex justify-end gap-3 pt-4">
+                            <div className="flex justify-end gap-3 pt-2">
                                 <Button
-                                    type="button"
                                     variant="ghost"
                                     onClick={() => setIsAddModalOpen(false)}
                                 >
                                     Cancel
                                 </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={isAdding}
-                                    className="bg-black hover:bg-gray-800 text-white min-w-[100px]"
-                                >
-                                    {isAdding ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Analyzing...
-                                        </>
-                                    ) : (
-                                        'Start Analysis'
-                                    )}
-                                </Button>
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             )}

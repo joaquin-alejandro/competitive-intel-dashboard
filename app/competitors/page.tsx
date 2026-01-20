@@ -29,11 +29,18 @@ export default function CompetitorsPage() {
         }
 
         const data = JSON.parse(stored);
+
+        // If we already have the data, don't re-trigger things if component re-mounts
+        // just by checking if the data is different or if suggestedCompetitors is empty
         setSiteInfo(data);
 
-        // Fetch competitor suggestions
-        fetchCompetitors(data);
-    }, []);
+        // Fetch competitor suggestions only if we haven't yet or if it's a new site
+        if (suggestedCompetitors.length === 0) {
+            fetchCompetitors(data);
+        } else {
+            setLoading(false);
+        }
+    }, [suggestedCompetitors.length]);
 
     const fetchCompetitors = async (siteData: any) => {
         try {

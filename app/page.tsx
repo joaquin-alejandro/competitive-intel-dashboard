@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { WebsiteInput } from '@/components/WebsiteInput';
 import { Loader2, TrendingUp } from 'lucide-react';
 import { SiteAnalysis } from '@/lib/types';
 
@@ -14,7 +15,10 @@ export default function Home() {
   const [error, setError] = useState('');
   const [analysis, setAnalysis] = useState<SiteAnalysis | null>(null);
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (submittedUrl?: string) => {
+    const urlToAnalyze = submittedUrl || url;
+    if (!urlToAnalyze) return;
+
     setError('');
     setLoading(true);
 
@@ -22,7 +26,7 @@ export default function Home() {
       const response = await fetch('/api/analyze-site', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url: urlToAnalyze }),
       });
 
       const data = await response.json();
@@ -69,31 +73,18 @@ export default function Home() {
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">
-                Enter Your Website
+                Loading...
               </label>
-              <div className="flex gap-2">
-                <Input
-                  type="url"
-                  placeholder="https://yourwebsite.com"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && !loading && handleAnalyze()}
-                  className="flex-1 h-10 border-gray-300 focus:border-black focus:ring-black"
+              <div className="w-full">
+                <WebsiteInput
+                  onSubmit={(val) => {
+                    setUrl(val);
+                    // Slight delay to ensure state update before analyze
+                    setTimeout(() => handleAnalyze(val), 0);
+                  }}
+                  isLoading={loading}
+                  className="w-full"
                 />
-                <Button
-                  onClick={handleAnalyze}
-                  disabled={loading || !url}
-                  className="h-10 px-6 bg-black hover:bg-gray-800 text-white"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    'Analyze'
-                  )}
-                </Button>
               </div>
             </div>
 
